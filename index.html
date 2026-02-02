@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<title>BOERI F1</title>
+
+<!-- Firebase v10 compat -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+/* ════════════════════════════════════════════════════
+   BOERI F1 — MASTER STYLESHEET
+   ════════════════════════════════════════════════════ */
+:root {
+  --bg:#0a0a0f; --surf:#111118; --surf2:#1a1a24; --surf3:#222230;
+  --red:#E10600; --red-lo:rgba(225,6,0,.13); --gold:#DAA520;
+  --w:#fff; --g:#5a5a6e; --gl:#8a8a9e; --bdr:#2a2a38;
+  --soft:#E8002D; --med:#FFC906; --hard:#fff;
+  --inter:#39B54A; --fw:#0047AB;
+  --r:12px;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--w);font-family:'Barlow Condensed',sans-serif;-webkit-font-smoothing:antialiased;}
+
+/* ── SHELL ── */
+#app{display:flex;flex-direction:column;height:100%;max-width:520px;margin:0 auto;position:relative;}
+
+/* ── HEADER ── */
+.hdr{background:#000;border-bottom:3px solid var(--red);padding:11px 18px;padding-top:calc(11px + var(--st));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:100;position:relative;}
+.hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:3px;display:flex;align-items:center;gap:7px;}
+.hdr-logo .b{color:var(--red);}
+.hdr-logo .ico{width:26px;height:26px;border:2px solid var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.ham{width:34px;height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
+.ham span{display:block;width:21px;height:2px;background:#fff;border-radius:1px;transition:.25s;}
+
+/* ── MENU ── */
+.menu-ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;}
+.menu-ov.open{opacity:1;pointer-events:auto;}
+.menu-pan{position:absolute;top:0;right:-100%;width:255px;height:100%;background:#111;border-left:1px solid var(--bdr);transition:right .3s cubic-bezier(.4,0,.2,1);z-index:201;display:flex;flex-direction:column;padding-top:var(--st);}
+.menu-ov.open .menu-pan{right:0;}
+.menu-x{position:absolute;top:calc(10px + var(--st));right:14px;background:none;border:none;color:#fff;font-size:21px;cursor:pointer;}
+.menu-hdr{padding:46px 18px 16px;border-bottom:1px solid var(--bdr);}
+.menu-hdr .ml{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;}
+.menu-hdr .ml .b{color:var(--red);}
+.menu-items{flex:1;overflow-y:auto;padding:6px 0;}
+.mi{display:flex;align-items:center;gap:13px;padding:12px 18px;cursor:pointer;color:var(--gl);font-size:13px;font-weight:600;border:none;background:none;width:100%;text-align:left;font-family:'Barlow Condensed',sans-serif;transition:.15s;}
+.mi:hover,.mi.active{background:var(--red-lo);color:#fff;}
+.mi .ic{width:18px;text-align:center;font-size:15px;}
+.mi .lb{text-transform:uppercase;letter-spacing:1px;font-size:11.5px;}
+.menu-div{height:1px;background:var(--bdr);margin:3px 18px;}
+.menu-admin{border-top:1px solid var(--bdr);padding:6px 0 0;}
+.menu-admin-lbl{font-size:8.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--g);padding:5px 18px 1px;font-weight:700;}
+
+/* ── SCROLL CONTENT ── */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(58px + var(--sb));}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:absolute;bottom:0;left:0;right:0;background:#000;border-top:1px solid var(--bdr);display:flex;justify-content:space-around;padding:5px 0;padding-bottom:var(--sb);z-index:100;flex-shrink:0;}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;color:var(--g);transition:color .2s;padding:3px 0;font-family:'Barlow Condensed',sans-serif;}
+.nb .ni{font-size:17px;}
+.nb .nl{font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+.nb.active{color:var(--red);}
+
+/* ── PAGES ── */
+.pg{display:none;}
+.pg.active{display:block;animation:fadeIn .22s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LOGIN ── */
+#login{position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;}
+#login.hidden{display:none;}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:50px;letter-spacing:5px;text-align:center;margin-bottom:6px;}
+.login-logo .b{color:var(--red);}
+.login-line{width:55px;height:3px;background:var(--red);margin:0 auto 28px;}
+.login-sub{color:var(--g);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:36px;text-align:center;}
+.login-btn{background:#fff;color:#000;border:none;padding:13px 30px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:9px;letter-spacing:.4px;transition:transform .15s,box-shadow .15s;}
+.login-btn:hover{transform:scale(1.03);box-shadow:0 4px 18px rgba(255,255,255,.14);}
+.login-btn .gi{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4285f4,#34a853,#fbbc05,#ea4335);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+
+/* ── CARD ── */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);margin:0 14px 10px;overflow:hidden;}
+.card-hdr{padding:12px 15px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.card-t{font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--g);font-weight:700;display:flex;align-items:center;gap:7px;}
+.card-t .ci{font-size:13px;}
+.card-b{padding:13px 15px;}
+
+/* ── GP HERO ── */
+.gp-hero{margin:10px 14px;border-radius:var(--r);overflow:hidden;position:relative;min-height:135px;}
+.gp-hero-bg{position:absolute;top:0;left:0;right:0;bottom:0;}
+.gp-hero-c{position:relative;z-index:2;padding:17px;}
+.gp-hero-flag{font-size:9.5px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.45);margin-bottom:3px;}
+.gp-hero-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#fff;line-height:1.1;}
+.gp-hero-loc{font-size:11.5px;color:rgba(255,255,255,.55);margin-top:2px;}
+.gp-status{display:inline-block;margin-top:9px;background:rgba(218,165,32,.15);border:1px solid var(--gold);color:var(--gold);font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:18px;text-transform:uppercase;letter-spacing:1px;}
+.gp-cd{margin-top:10px;display:flex;gap:8px;}
+.cd-u{background:rgba(255,255,255,.07);border-radius:7px;padding:7px 9px;text-align:center;min-width:44px;}
+.cd-n{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fff;}
+.cd-l{font-size:7.5px;color:var(--g);text-transform:uppercase;letter-spacing:.4px;}
+
+/* ── CHICCA ── */
+.chicca{margin:0 14px 10px;background:linear-gradient(135deg,var(--surf),var(--surf2));border:1px solid var(--bdr);border-radius:var(--r);padding:14px;}
+.chicca-t{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.chicca-txt{font-size:12.5px;color:var(--gl);line-height:1.55;font-weight:500;}
+.chicca-txt .yr{color:var(--gold);font-weight:700;}
+
+/* ── CURIOSITA ── */
+.cur-item{padding:9px 0;border-bottom:1px solid var(--bdr);font-size:11.5px;color:var(--gl);line-height:1.5;font-weight:500;}
+.cur-item:last-child{border-bottom:none;}
+
+/* ── GP CHIPS ── */
+.gp-chips{padding:10px 14px;display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.gp-chips::-webkit-scrollbar{display:none;}
+.gp-chip{flex-shrink:0;background:var(--surf2);border:1px solid var(--bdr);color:var(--gl);padding:6px 13px;border-radius:18px;font-size:10.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s;font-family:'Barlow Condensed',sans-serif;letter-spacing:.4px;}
+.gp-chip:hover{border-color:var(--red);color:#fff;}
+.gp-chip.active{background:var(--red);border-color:var(--red);color:#fff;}
+.gp-chip.done{border-color:var(--inter);color:var(--inter);}
+
+/* ── DEADLINE BANNER ── */
+.dl-ban{margin:0 14px 10px;padding:9px 13px;background:rgba(218,165,32,.09);border:1px solid rgba(218,165,32,.28);border-radius:9px;display:flex;align-items:center;gap:7px;}
+.dl-ban .icon{font-size:13px;}
+.dl-ban .lbl{font-size:9.5px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.dl-ban .val{font-size:10.5px;color:var(--gl);}
+.dl-ban.urgent{background:rgba(225,6,0,.12);border-color:rgba(225,6,0,.4);}
+.dl-ban.urgent .lbl,.dl-ban.urgent .val{color:var(--red);}
+
+/* ── PODIO ── */
+.podio-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:0 15px;}
+.podio-slot{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:9px 6px;text-align:center;cursor:pointer;transition:border-color .18s;}
+.podio-slot:hover{border-color:var(--red);}
+.podio-slot .pp{font-family:'Bebas Neue',sans-serif;font-size:16px;margin-bottom:3px;}
+.pp.p1{color:var(--gold)}.pp.p2{color:#A8A9AD}.pp.p3{color:#CD7F32}
+.podio-slot .pv{font-size:10.5px;color:var(--g);font-weight:600;}
+.podio-slot.sel{border-color:var(--gold);background:rgba(218,165,32,.07);}
+.podio-slot.sel .pv{color:#fff;}
+.podio-slot .pt{font-size:8.5px;margin-top:2px;}
+
+/* ── GOMME ── */
+.gomme-section{padding:0 15px;}
+.gomme-slots{display:flex;gap:7px;margin-bottom:10px;}
+.g-slot{flex:1;height:62px;border:2px dashed var(--bdr);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s;position:relative;background:var(--surf2);flex-direction:column;gap:2px;}
+.g-slot:hover{border-color:var(--gl);}
+.g-slot .sn{font-family:'Bebas Neue',sans-serif;font-size:15px;color:rgba(255,255,255,.25);}
+.g-slot.filled{border-style:solid;}
+.g-slot.filled .sl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+.g-slot.filled .sv{font-size:7.5px;color:rgba(255,255,255,.5);text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 3px;}
+.g-slot.blocked{opacity:.25;cursor:not-allowed;border-style:solid;border-color:var(--bdr);}
+.g-slot .sx{position:absolute;top:2px;right:3px;font-size:9px;cursor:pointer;opacity:.6;}
+
+/* ── PICKER ── */
+.pk-ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:flex-end;}
+.pk-ov.open{display:flex;}
+.pk-pan{background:var(--surf);border-radius:14px 14px 0 0;width:100%;max-height:70vh;display:flex;flex-direction:column;padding-bottom:var(--sb);}
+.pk-hdr{padding:11px 15px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.pk-t{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
+.pk-x{background:none;border:none;color:var(--g);font-size:19px;cursor:pointer;}
+.pk-list{overflow-y:auto;max-height:calc(70vh - 55px);}
+.pk-item{padding:12px 15px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:background .13s;display:flex;align-items:center;gap:9px;background:none;border-left:none;border-right:none;width:100%;text-align:left;font-family:'Barlow Condensed',sans-serif;color:var(--gl);}
+.pk-item:hover{background:var(--red-lo);color:#fff;}
+.pk-item:last-child{border-bottom:none;}
+.pk-item .pn{font-family:'Bebas Neue',sans-serif;font-size:14px;min-width:26px;text-align:center;}
+.pk-item .td{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pk-item .nm{font-size:12.5px;font-weight:600;}
+.pk-item .tm{font-size:9.5px;color:var(--g);}
+.pk-item .cat-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+.pk-item .cat-info .cat-name{font-size:13px;font-weight:700;}
+.pk-item .cat-info .cat-sub{font-size:9.5px;color:var(--g);}
+
+/* ── CLASSIFICA ── */
+.cl-item{margin:0 14px 7px;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:9px;}
+.cl-item.t1{border-color:rgba(218,165,32,.4);background:linear-gradient(135deg,#1f1a0a,var(--surf));}
+.cl-item.t2{border-color:rgba(168,169,173,.28);}
+.cl-item.t3{border-color:rgba(205,127,50,.28);}
+.rb{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;flex-shrink:0;}
+.rb.r1{background:rgba(218,165,32,.15);color:var(--gold);border:2px solid var(--gold);}
+.rb.r2{background:rgba(168,169,173,.1);color:#A8A9AD;border:2px solid #A8A9AD;}
+.rb.r3{background:rgba(205,127,50,.15);color:#CD7F32;border:2px solid #CD7F32;}
+.rb.ro{background:var(--surf2);color:var(--g);border:1px solid var(--bdr);font-size:12px;}
+.cl-hel{width:36px;height:36px;border-radius:50%;flex-shrink:0;position:relative;overflow:hidden;border:2px solid var(--bdr);}
+.cl-inf{flex:1;min-width:0;}
+.cl-nm{font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cl-st{font-size:9.5px;color:var(--g);margin-top:1px;}
+.cl-pts{text-align:right;flex-shrink:0;display:flex;align-items:center;gap:3px;}
+.cl-pn{font-family:'Bebas Neue',sans-serif;font-size:21px;color:#fff;}
+
+/* ── REGOLAMENTO ── */
+.reg-card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin:0 14px 9px;}
+.reg-hdr{background:var(--surf2);padding:11px 15px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:7px;}
+.reg-row{display:flex;justify-content:space-between;align-items:center;padding:9px 15px;border-bottom:1px solid var(--bdr);font-size:11.5px;}
+.reg-row:last-child{border-bottom:none;}
+.reg-row .rd{color:var(--gl);font-weight:500;}
+.reg-row .rp{background:var(--red-lo);color:var(--red);padding:2px 9px;border-radius:11px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+.reg-row .rp.gr{background:rgba(57,181,74,.13);color:var(--inter);}
+
+/* ── PROFILIO ── */
+.prof-hero{margin:10px 14px;padding:22px 15px;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);text-align:center;}
+.prof-helm{width:90px;height:90px;margin:0 auto 10px;border-radius:50%;border:3px solid var(--bdr);overflow:hidden;position:relative;}
+.prof-nm{font-size:19px;font-weight:700;color:#fff;}
+.prof-num{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);}
+
+/* ── INPUTS ── */
+.inp{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13.5px;outline:none;transition:border-color .18s;}
+.inp:focus{border-color:var(--red);}
+.inp-lbl{font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:var(--g);display:block;margin-bottom:4px;font-weight:600;}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8a9e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;background-color:var(--surf2);}
+select.inp option{background:#1a1a24;}
+
+/* ── HELMET COLOR PICKER ── */
+.hc-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.hc-swatch{width:21px;height:21px;border-radius:50%;cursor:pointer;transition:.13s;flex-shrink:0;}
+
+/* ── BTN ── */
+.btn-conf{display:block;width:calc(100% - 28px);margin:10px 14px;background:var(--red);color:#fff;border:none;padding:12px;border-radius:9px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;transition:background .18s;}
+.btn-conf:hover{background:#c50500;}
+.btn-conf:disabled{background:var(--surf3);color:var(--g);cursor:not-allowed;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(68px + var(--sb));left:50%;transform:translateX(-50%) translateY(18px);background:var(--surf2);border:1px solid var(--bdr);color:#fff;padding:9px 18px;border-radius:7px;font-size:11.5px;font-weight:600;white-space:nowrap;opacity:0;transition:.28s;z-index:400;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── UTIL ── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+.sep{height:1px;background:var(--bdr);margin:8px 0;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login">
+  <div class="login-logo"><span class="b">BOERI</span> <span style="color:#fff">F1</span></div>
+  <div class="login-line"></div>
+  <div class="login-sub">Previsioni · Gran Premio · Formula 1</div>
+  <button class="login-btn" id="loginBtn">
+    <span class="gi">G</span> Accedi con Google
+  </button>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app" style="display:none;">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-logo"><div class="ico">🏎️</div><span><span class="b">BOERI</span><span style="color:#fff"> F1</span></span></div>
+    <button class="ham" id="menuBtn"><span></span><span></span><span></span></button>
+  </div>
+
+  <!-- Menu -->
+  <div class="menu-ov" id="menuOv">
+    <div class="menu-pan">
+      <button class="menu-x" id="menuX">✕</button>
+      <div class="menu-hdr"><div class="ml"><span class="b">BOERI</span> F1</div></div>
+      <div class="menu-items">
+        <button class="mi active" data-pg="dashboard"><span class="ic">🏠</span><span class="lb">Dashboard</span></button>
+        <button class="mi" data-pg="previsioni"><span class="ic">🏁</span><span class="lb">Le Mie Previsioni</span></button>
+        <div class="menu-div"></div>
+        <button class="mi" data-pg="classifica"><span class="ic">🏆</span><span class="lb">Classifica Boeri</span></button>
+        <button class="mi" data-pg="classifiche_f1"><span class="ic">📊</span><span class="lb">Classifiche F1</span></button>
+        <div class="menu-div"></div>
+        <button class="mi" data-pg="gp_info"><span class="ic">🏎️</span><span class="lb">GP in Corso</span></button>
+        <button class="mi" data-pg="profilio"><span class="ic">👤</span><span class="lb">Il Mio Profilio</span></button>
+        <div class="menu-div"></div>
+        <button class="mi" data-pg="regolamento"><span class="ic">📋</span><span class="lb">Regolamento</span></button>
+        <div class="menu-div"></div>
+        <button class="mi" id="logoutBtn"><span class="ic">⚙️</span><span class="lb">Logout</span></button>
+      </div>
+      <div class="menu-admin" id="adminSec" style="display:none;">
+        <div class="menu-admin-lbl">🔧 Admin</div>
+        <button class="mi" data-pg="admin"><span class="ic">⚙️</span><span class="lb">Pannello Admin</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ════ DASHBOARD ════ -->
+    <div class="pg active" id="pg-dashboard">
+      <div class="gp-hero" id="gpHero">
+        <div class="gp-hero-bg" id="gpHeroBg"></div>
+        <div class="gp-hero-c">
+          <div class="gp-hero-flag" id="gpFlag">GP 1 / 24</div>
+          <div class="gp-hero-name" id="gpName">Gran Premio</div>
+          <div class="gp-hero-loc" id="gpLoc">Circuito</div>
+          <div class="gp-status" id="gpStat">Prossimo GP</div>
+          <div class="gp-cd" id="gpCd">
+            <div class="cd-u"><div class="cd-n" id="cd-d">--</div><div class="cd-l">Giorni</div></div>
+            <div class="cd-u"><div class="cd-n" id="cd-h">--</div><div class="cd-l">Ore</div></div>
+            <div class="cd-u"><div class="cd-n" id="cd-m">--</div><div class="cd-l">Min</div></div>
+            <div class="cd-u"><div class="cd-n" id="cd-s">--</div><div class="cd-l">Sec</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="chicca" id="chiccaCard">
+        <div class="chicca-t"><span>📅</span> In questo giorno nella Formula 1...</div>
+        <div class="chicca-txt" id="chiccaTxt">Caricamento...</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-t"><span class="ci">🏆</span> Classifica — Top 3</div>
+          <span style="font-size:10.5px;color:var(--red);cursor:pointer;font-weight:700;" onclick="goTo('classifica')">Tutto →</span>
+        </div>
+        <div class="card-b" id="clMini"><div style="color:var(--g);font-size:11.5px;text-align:center;padding:10px 0;">Nessun giocatore ancora</div></div>
+      </div>
+    </div>
+
+    <!-- ════ PREVISIONI ════ -->
+    <div class="pg" id="pg-previsioni">
+      <div class="gp-chips" id="gpChips"></div>
+      <div class="dl-ban" id="dlBan"><span class="icon">⏰</span><div><div class="lbl">Deadline previsioni</div><div class="val" id="dlVal">—</div></div></div>
+
+      <div class="card">
+        <div class="card-hdr"><div class="card-t"><span class="ci">🥇</span> Previsione Podio</div><span style="font-size:9.5px;color:var(--gold);font-weight:700;">Max 10 Boeri</span></div>
+        <div class="card-b" style="padding:11px 0;"><div class="podio-grid" id="podioGrid"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr"><div class="card-t"><span class="ci">🔵</span> Previsioni Gomme</div><span style="font-size:9.5px;color:var(--g);" id="slotsLabel">3 slot disponibili</span></div>
+        <div class="card-b"><div class="gomme-slots" id="gommeSlots"></div></div>
+      </div>
+
+      <button class="btn-conf" id="btnConf" onclick="conferma()">CONFERMA PREVISIONI</button>
+    </div>
+
+    <!-- ════ CLASSIFICA ════ -->
+    <div class="pg" id="pg-classifica">
+      <div style="padding:10px 14px 0;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--g);text-align:center;margin-bottom:8px;">Classifica Generale — Stagione 2026</div>
+      <div id="clList"></div>
+    </div>
+
+    <!-- ════ CLASSIFICHE F1 ════ -->
+    <div class="pg" id="pg-classifiche_f1">
+      <div class="card" style="margin-top:10px;"><div class="card-hdr"><div class="card-t"><span class="ci">🏎️</span> Classifica Piloti 2026</div></div><div class="card-b" style="font-size:11px;color:var(--g);text-align:center;padding:18px 0;">Dati aggiornati dopo ogni GP tramite OpenF1 API.<br/>Stagione ancora da iniziare.</div></div>
+      <div class="card"><div class="card-hdr"><div class="card-t"><span class="ci">🏁</span> Classifica Costruttori 2026</div></div><div class="card-b" style="font-size:11px;color:var(--g);text-align:center;padding:18px 0;">Dati aggiornati dopo ogni GP tramite OpenF1 API.<br/>Stagione ancora da iniziare.</div></div>
+    </div>
+
+    <!-- ════ GP INFO ════ -->
+    <div class="pg" id="pg-gp_info">
+      <div class="card" style="margin-top:10px;"><div class="card-hdr"><div class="card-t"><span class="ci">🏎️</span> GP in Corso / Prossimo</div></div><div class="card-b" id="gpInfoB"></div></div>
+      <div class="card"><div class="card-hdr"><div class="card-t"><span class="ci">💡</span> Curiosità</div></div><div class="card-b" id="curB"></div></div>
+      <div class="card"><div class="card-hdr"><div class="card-t"><span class="ci">⏭️</span> Prossimo GP</div></div><div class="card-b" id="nextGpB"></div></div>
+    </div>
+
+    <!-- ════ PROFILIO ════ -->
+    <div class="pg" id="pg-profilio">
+      <div class="prof-hero">
+        <div class="prof-helm" id="profHelm"></div>
+        <div class="prof-num" id="profNum">7</div>
+        <div class="prof-nm" id="profNm">Il Tuo Nome</div>
+        <div style="font-size:10.5px;color:var(--g);margin-top:3px;" id="profEmail">—</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-t"><span class="ci">✏️</span> Modifica Profilio</div></div>
+        <div class="card-b">
+          <div style="margin-bottom:10px;"><label class="inp-lbl">Nickname</label><input class="inp" id="inNick" placeholder="Il tuo nickname" oninput="updProf()"></div>
+          <div style="display:flex;gap:9px;">
+            <div style="flex:1;"><label class="inp-lbl">Numero Racing</label><input class="inp" id="inNum" type="number" min="2" max="99" placeholder="7" oninput="updProf()"></div>
+            <div style="flex:1;"><label class="inp-lbl">Scuderia</label><select class="inp" id="inSc"></select></div>
+          </div>
+          <div style="margin-top:10px;"><label class="inp-lbl">Pilota Preferito</label><select class="inp" id="inPil"></select></div>
+          <div style="margin-top:14px;">
+            <label class="inp-lbl">Personalizza Casco</label>
+            <div style="display:flex;gap:10px;margin-top:7px;">
+              <div style="flex:1;"><div style="font-size:8.5px;color:var(--g);margin-bottom:3px;">Base 1</div><div class="hc-row" data-tgt="base1"></div></div>
+              <div style="flex:1;"><div style="font-size:8.5px;color:var(--g);margin-bottom:3px;">Base 2</div><div class="hc-row" data-tgt="base2"></div></div>
+              <div style="flex:1;"><div style="font-size:8.5px;color:var(--g);margin-bottom:3px;">Dettagli</div><div class="hc-row" data-tgt="detail"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-conf" onclick="saveProf()">SALVA PROFILIO</button>
+    </div>
+
+    <!-- ════ REGOLAMENTO ════ -->
+    <div class="pg" id="pg-regolamento">
+      <div style="padding-top:10px;">
+        <div class="reg-card"><div class="reg-hdr">🥇 Previsione Podio</div>
+          <div class="reg-row"><span class="rd">Podio perfetto (1°, 2°, 3° tutti esatti)</span><span class="rp gr">10 Boeri</span></div>
+          <div class="reg-row"><span class="rd">2 posizioni esatte</span><span class="rp">7 Boeri</span></div>
+          <div class="reg-row"><span class="rd">3 nomi giusti, posizioni sbagliate</span><span class="rp">6 Boeri</span></div>
+          <div class="reg-row"><span class="rd">1 posizione esatta</span><span class="rp">4 Boeri</span></div>
+          <div class="reg-row"><span class="rd">2 nomi giusti, posizioni sbagliate</span><span class="rp">3 Boeri</span></div>
+          <div class="reg-row"><span class="rd">1 nome giusto, posizione sbagliata</span><span class="rp">1 Boero</span></div>
+          <div class="reg-row"><span class="rd">Nessun nome indovinato</span><span class="rp" style="background:var(--surf3);color:var(--g);">0</span></div>
+        </div>
+        <div class="reg-card"><div class="reg-hdr">🔵 Previsioni Gomme — Punteggio</div>
+          <div class="reg-row"><span class="rd" style="color:var(--soft);">🔴 SOFT — 1 slot</span><span class="rp">1 Boero</span></div>
+          <div class="reg-row"><span class="rd" style="color:var(--med);">🟡 MEDIUM — 1 slot</span><span class="rp">2 Boeri</span></div>
+          <div class="reg-row"><span class="rd" style="color:#ccc;">⚪ HARD — 1 slot</span><span class="rp">3 Boeri</span></div>
+          <div class="reg-row"><span class="rd" style="color:var(--inter);">🟩 INTERMEDIE — 2 slot</span><span class="rp gr">4 Boeri</span></div>
+          <div class="reg-row"><span class="rd" style="color:var(--fw);">🔵 FULL WET — 2 slot</span><span class="rp gr">5 Boeri</span></div>
+        </div>
+        <div class="reg-card"><div class="reg-hdr">🥇 Previsione Campionato</div>
+          <div class="reg-row"><span class="rd">Campione Mondiale Piloti</span><span class="rp gr">50 Boeri 🥇</span></div>
+          <div class="reg-row"><span class="rd">Campione Mondiale Costruttori</span><span class="rp gr">50 Boeri 🥇</span></div>
+        </div>
+        <div class="reg-card"><div class="reg-hdr">📋 Regole Generali</div>
+          <div class="reg-row" style="flex-direction:column;align-items:flex-start;gap:5px;">
+            <span class="rd">• Le previsioni devono essere inserite prima della deadline (2h prima di FP1).</span>
+            <span class="rd">• Una volta confermate, le previsioni non possono essere modificate.</span>
+            <span class="rd">• I punteggi vengono calcolati automaticamente dopo ogni corsa.</span>
+            <span class="rd">• INTERMEDIE e FULL WET costano 2 slot su 3 disponibili.</span>
+            <span class="rd">• Una notifica viene inviata 30 min prima della deadline se le previsioni non sono ancora state inserite.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ ADMIN ════ -->
+    <div class="pg" id="pg-admin">
+      <div class="card" style="margin-top:10px;">
+        <div class="card-hdr"><div class="card-t"><span class="ci">🔧</span> Pannello Admin</div></div>
+        <div class="card-b" style="font-size:11.5px;color:var(--gl);">
+          <p style="margin-bottom:7px;">Questo pannello è visibile solo a te come amministratore.</p>
+          <p>Da qui puoi inserire risultati reali dei GP e gestire i giocatori.</p>
+          <div style="margin-top:14px;padding-top:11px;border-top:1px solid var(--bdr);"><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">Inserimento Risultati</div><div style="font-size:10.5px;color:var(--g);">Funzionalità in sviluppo — disponibile prima del primo GP.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Bottom Nav -->
+  <div class="bnav">
+    <button class="nb active" data-pg="dashboard"><span class="ni">🏠</span><span class="nl">Home</span></button>
+    <button class="nb" data-pg="previsioni"><span class="ni">🏁</span><span class="nl">Previsioni</span></button>
+    <button class="nb" data-pg="classifica"><span class="ni">🏆</span><span class="nl">Classifica</span></button>
+    <button class="nb" data-pg="profilio"><span class="ni">👤</span><span class="nl">Profilio</span></button>
+  </div>
+</div><!-- /app -->
+
+<!-- Picker Overlay -->
+<div class="pk-ov" id="pkOv">
+  <div class="pk-pan">
+    <div class="pk-hdr"><div class="pk-t" id="pkTitle">Seleziona</div><button class="pk-x" onclick="closePk()">✕</button></div>
+    <div class="pk-list" id="pkList"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════════════ -->
+<script>
+// ─── FIREBASE ───
+firebase.initializeApp({
+  apiKey:"AIzaSyAmjZI8T5I8WsZHlLTqFO7Gt7T5EUWOl1Y",
+  authDomain:"boeri-formula1.firebaseapp.com",
+  projectId:"boeri-formula1",
+  storageBucket:"boeri-formula1.firebasestorage.app",
+  messagingSenderId:"310380317265",
+  appId:"1:310380317265:web:c0be53768f255cbfa88670",
+  measurementId:"G-F0CD2VGKYW"
+});
+const auth=firebase.auth(), db=firebase.firestore();
+
+// ─── DATI STATICI ───
+const T={
+  mclaren:{n:"McLaren",c:"#FF8000"},ferrari:{n:"Ferrari",c:"#DC0000"},redbull:{n:"Red Bull",c:"#1E41FF"},
+  mercedes:{n:"Mercedes",c:"#C8C8C8"},aston_martin:{n:"Aston Martin",c:"#006F62"},alpine:{n:"Alpine",c:"#0093FE"},
+  williams:{n:"Williams",c:"#005AFF"},racing_bulls:{n:"Racing Bulls",c:"#00CFFF"},haas:{n:"Haas",c:"#B71C1C"},
+  audi:{n:"Audi",c:"#1B4D3E"},cadillac:{n:"Cadillac",c:"#1A1A1A"}
+};
+const TK=Object.keys(T);
+const D=[
+  {num:3,name:"Max Verstappen",team:"redbull"},{num:4,name:"Lando Norris",team:"mclaren"},
+  {num:5,name:"Gabriel Bortoleto",team:"audi"},{num:6,name:"Isack Hadjar",team:"redbull"},
+  {num:10,name:"Pierre Gasly",team:"alpine"},{num:11,name:"Sergio Pérez",team:"cadillac"},
+  {num:12,name:"Kimi Antonelli",team:"mercedes"},{num:14,name:"Fernando Alonso",team:"aston_martin"},
+  {num:16,name:"Charles Leclerc",team:"ferrari"},{num:18,name:"Lance Stroll",team:"aston_martin"},
+  {num:23,name:"Alex Albon",team:"williams"},{num:27,name:"Nico Hülkenberg",team:"audi"},
+  {num:30,name:"Liam Lawson",team:"racing_bulls"},{num:31,name:"Esteban Ocon",team:"haas"},
+  {num:41,name:"Arvid Lindblad",team:"racing_bulls"},{num:43,name:"Franco Colapinto",team:"alpine"},
+  {num:44,name:"Lewis Hamilton",team:"ferrari"},{num:55,name:"Carlos Sainz",team:"williams"},
+  {num:63,name:"George Russell",team:"mercedes"},{num:77,name:"Valtteri Bottas",team:"cadillac"},
+  {num:81,name:"Oscar Piastri",team:"mclaren"},{num:87,name:"Oliver Bearman",team:"haas"}
+];
+const NC={
+  australia:["#00008B","#CF142B"],china:["#DE2910","#FFDE00"],japan:["#BC002D","#FFFFFF"],
+  bahrain:["#CE1126","#000000"],saudi_arabia:["#006C35","#FFFFFF"],miami:["#3C3B6E","#B22234"],
+  canada:["#FF0000","#FFFFFF"],monaco:["#CE1126","#FFFFFF"],spain:["#AA151B","#F1BF00"],
+  austria:["#ED2939","#FFFFFF"],uk:["#00247D","#CF142B"],belgium:["#000000","#FDDA24"],
+  hungary:["#CE2939","#477050"],netherlands:["#AE1C28","#21468B"],italy:["#009246","#CE2B37"],
+  madrid:["#AA151B","#F1BF00"],azerbaijan:["#0092BC","#EF3340"],singapore:["#EF3340","#FFFFFF"],
+  usa:["#3C3B6E","#B22234"],mexico:["#006847","#CE1126"],brazil:["#009739","#FEDF00"],
+  las_vegas:["#3C3B6E","#B22234"],qatar:["#8A1538","#FFFFFF"],abu_dhabi:["#009739","#CE1126"]
+};
+const CAL=[
+  {id:0,name:"Australia",location:"Melbourne",nation:"australia",race:"2026-03-08T14:00:00Z",fp1:"2026-03-05T15:30:00Z",sprint:false},
+  {id:1,name:"China",location:"Shanghai",nation:"china",race:"2026-03-15T06:00:00Z",fp1:"2026-03-13T03:00:00Z",sprint:true},
+  {id:2,name:"Japan",location:"Suzuka",nation:"japan",race:"2026-03-29T05:00:00Z",fp1:"2026-03-27T02:00:00Z",sprint:false},
+  {id:3,name:"Bahrain",location:"Sakhir",nation:"bahrain",race:"2026-04-12T12:00:00Z",fp1:"2026-04-10T09:00:00Z",sprint:false},
+  {id:4,name:"Saudi Arabia",location:"Jeddah",nation:"saudi_arabia",race:"2026-04-19T12:00:00Z",fp1:"2026-04-17T09:00:00Z",sprint:false},
+  {id:5,name:"Miami",location:"Miami",nation:"miami",race:"2026-05-03T18:00:00Z",fp1:"2026-05-01T16:30:00Z",sprint:true},
+  {id:6,name:"Canada",location:"Montreal",nation:"canada",race:"2026-05-24T18:00:00Z",fp1:"2026-05-22T16:30:00Z",sprint:true},
+  {id:7,name:"Monaco",location:"Monte Carlo",nation:"monaco",race:"2026-06-07T12:00:00Z",fp1:"2026-06-05T09:00:00Z",sprint:false},
+  {id:8,name:"Spagna",location:"Barcelona",nation:"spain",race:"2026-06-14T12:00:00Z",fp1:"2026-06-12T09:00:00Z",sprint:false},
+  {id:9,name:"Austria",location:"Spielberg",nation:"austria",race:"2026-06-28T12:00:00Z",fp1:"2026-06-26T09:00:00Z",sprint:false},
+  {id:10,name:"Gran Bretagna",location:"Silverstone",nation:"uk",race:"2026-07-05T13:00:00Z",fp1:"2026-07-03T10:00:00Z",sprint:true},
+  {id:11,name:"Belgio",location:"Spa",nation:"belgium",race:"2026-07-19T12:00:00Z",fp1:"2026-07-17T09:00:00Z",sprint:false},
+  {id:12,name:"Ungheria",location:"Budapest",nation:"hungary",race:"2026-07-26T12:00:00Z",fp1:"2026-07-24T09:00:00Z",sprint:false},
+  {id:13,name:"Olanda",location:"Zandvoort",nation:"netherlands",race:"2026-08-23T12:00:00Z",fp1:"2026-08-21T09:00:00Z",sprint:true},
+  {id:14,name:"Italia",location:"Monza",nation:"italy",race:"2026-09-06T12:00:00Z",fp1:"2026-09-04T09:00:00Z",sprint:false},
+  {id:15,name:"Madrid",location:"Madrid",nation:"madrid",race:"2026-09-13T12:00:00Z",fp1:"2026-09-11T09:00:00Z",sprint:false},
+  {id:16,name:"Azerbaijan",location:"Baku",nation:"azerbaijan",race:"2026-09-26T12:00:00Z",fp1:"2026-09-24T07:00:00Z",sprint:false},
+  {id:17,name:"Singapore",location:"Marina Bay",nation:"singapore",race:"2026-10-11T10:00:00Z",fp1:"2026-10-09T03:00:00Z",sprint:true},
+  {id:18,name:"Stati Uniti",location:"Austin",nation:"usa",race:"2026-10-25T20:00:00Z",fp1:"2026-10-23T16:30:00Z",sprint:false},
+  {id:19,name:"Messico",location:"Mexico City",nation:"mexico",race:"2026-11-01T20:00:00Z",fp1:"2026-10-30T16:30:00Z",sprint:false},
+  {id:20,name:"Brasile",location:"São Paulo",nation:"brazil",race:"2026-11-08T17:00:00Z",fp1:"2026-11-06T16:30:00Z",sprint:false},
+  {id:21,name:"Las Vegas",location:"Las Vegas",nation:"las_vegas",race:"2026-11-21T22:00:00Z",fp1:"2026-11-19T22:30:00Z",sprint:false},
+  {id:22,name:"Qatar",location:"Lusail",nation:"qatar",race:"2026-11-29T15:00:00Z",fp1:"2026-11-27T10:00:00Z",sprint:false},
+  {id:23,name:"Abu Dhabi",location:"Yas Marina",nation:"abu_dhabi",race:"2026-12-06T13:00:00Z",fp1:"2026-12-04T10:00:00Z",sprint:false}
+];
+const CUR={
+  australia:["🏆 Schumacher detiene il record con 4 vittorie a Melbourne (2000–2004).","🏎️ Ferrari è la scuderia più vincente in Australia con 11 vittorie storiche.","📊 Il record di pole è stato stabilito da Verstappen nel 2024 con media oltre 250 km/h.","🎯 Il vincitore del GP di Australia ha poi vinto il campionato nel 70% dei casi."],
+  italy:["🏆 Monza è il GP più disputato nella storia della Formula 1.","🏎️ Il rettilineo più lungo della F1: media oltre 300 km/h.","📊 Ferrari ha vinto più volte di qualsiasi altra scuderia a Monza.","🎯 Nel 2020 Monza ha ospitato due GP nella stessa stagione per il COVID-19."],
+  monaco:["🏆 Senna detiene il record con 6 vittorie — una leggenda su questa pista.","🏎️ Il circuito più stretto della F1: sorpassare è quasi impossibile.","📊 La piscina di Monaco è una delle curve più iconiche di tutta la F1.","🎯 Vincere a Monaco è considerato il test definitivo per un pilota."],
+  japan:["🏆 Senna ha vinto 4 volte a Suzuka durante la rivalità con Prost.","🏎️ Il circuito è stato costruito da Honda nel 1962 e resta iconico.","📊 La curva 130R richiede coraggio e precisione assolute.","🎯 8 titoli mondiali sono stati decisi qui tra il 1986 e il 2007."]
+};
+CAL.forEach(g=>{if(!CUR[g.nation])CUR[g.nation]=["🏎️ Il GP di "+g.name+" è una delle corse più attese del calendario.","📊 Il circuito di "+g.location+" mette alla prova tutte le capacità dei piloti.","🎯 Le previsioni possono cambiare drasticamente in base alla strategia dei pit stop."];});
+
+const HIST=[
+  {m:1,d:1,y:1950,t:"Nel 1950 viene annunciato il primo Campionato Mondiale della Formula 1, che inizierà il 13 maggio a Silverstone."},
+  {m:2,d:1,y:2005,t:"Nel 2005, Narain Karthikeyan firmò il contratto con Jordan, diventando il primo pilota indiano nella storia della Formula 1."},
+  {m:3,d:1,y:2000,t:"Nel 2000, Ferrari iniziò la preparazione per una stagione storica: Schumacher avrebbe vinto il primo titolo con la scuderia italiana."},
+  {m:5,d:1,y:1994,t:"Nel 1994, il mondo della Formula 1 si fermò. Ayrton Senna aveva perso la vita a Imola durante il Gran Premio di San Marino."},
+  {m:5,d:13,y:1950,t:"Nel 1950, a Silverstone si disputò il primo Gran Premio della Formula 1 ufficiale. Giuseppe Farina vinse la corsa."},
+  {m:5,d:26,y:2016,t:"Nel 2016, Max Verstappen ha vinto il suo primo Gran Premio (Spagna), diventando il pilota più giovane a vincere in F1."},
+  {m:6,d:15,y:1982,t:"Nel 1982, Gilles Villeneuve ha perso la vita durante le qualifiche del GP del Belgio a Spa."},
+  {m:9,d:6,y:1957,t:"Nel 1957, Juan Manuel Fangio ha vinto il quinto titolo mondiale, un record durato 46 anni fino al 2003."},
+  {m:10,d:6,y:1974,t:"Nel 1974, Niki Lauda ha vinto il primo titolo con Ferrari, iniziando una saga di rivalità e tragedie."},
+  {m:12,d:5,y:2021,t:"Nel 2021, Abu Dhabi ha ospitato una delle gare più controvertite: Verstappen ha vinto il primo titolo nell'ultimo giro."}
+];
+
+const CATS=[
+  {id:"soft",label:"SOFT",color:"#E8002D",slots:1,pts:1,sits:[
+    {id:"s_win",label:"Vincitore",tgt:"driver"},{id:"s_pts",label:"Pilota a punti",tgt:"driver"},
+    {id:"s_h2h",label:"Testa a testa (X battue Y)",tgt:"driver"},{id:"s_fl",label:"Giro veloce",tgt:"driver"},
+    {id:"s_tp",label:"Scuderia sul podio",tgt:"team"},{id:"s_td",label:"Doppietta scuderia",tgt:"team"},
+    {id:"s_pw",label:"Vittoria dalla pole",tgt:"yesno"},{id:"s_fp",label:"Primo al pitstop",tgt:"driver"},
+    {id:"s_lst",label:"Ultimo classificato",tgt:"driver"},{id:"s_fin",label:"Macchine al traguardo",tgt:"range"}
+  ]},
+  {id:"medium",label:"MEDIUM",color:"#FFC906",slots:1,pts:2,sits:[
+    {id:"m_bp",label:"Entrambi piloti scuderia a punti",tgt:"team"},{id:"m_q3",label:"Fuori dal Q3",tgt:"driver"},
+    {id:"m_dnf",label:"Ritirato dalla corsa",tgt:"driver"},{id:"m_pwp",label:"Vittoria dalla pole (pilota)",tgt:"driver"},
+    {id:"m_mp",label:"Podio mono-scuderia",tgt:"team"},{id:"m_lst",label:"Ultimo classificato",tgt:"driver"}
+  ]},
+  {id:"hard",label:"HARD",color:"#CCCCCC",slots:1,pts:3,sits:[
+    {id:"h_vsc",label:"Virtual Safety Car",tgt:"yesno"},{id:"h_pit",label:"Problemi ai box (>4s)",tgt:"driver"},
+    {id:"h_exact",label:"Risultato esatto pilota",tgt:"driver"},{id:"h_q2",label:"Fuori dal Q2",tgt:"driver"}
+  ]},
+  {id:"intermedie",label:"INTERMEDIE",color:"#39B54A",slots:2,pts:4,sits:[
+    {id:"i_sc",label:"Safety Car",tgt:"yesno"},{id:"i_pen",label:"Penalità durante la corsa",tgt:"driver"},
+    {id:"i_gc",label:"Grand Chelem",tgt:"driver"}
+  ]},
+  {id:"fullwet",label:"FULL WET",color:"#0047AB",slots:2,pts:5,sits:[
+    {id:"fw_inc",label:"Incidente durante la corsa",tgt:"driver_or_team"}
+  ]}
+];
+
+const HCOLORS=[
+  {n:"Nero",h:"#111111"},{n:"Bianco",h:"#F0F0F0"},{n:"Rosso F1",h:"#E10600"},
+  {n:"Rosso Scuro",h:"#8B0000"},{n:"Blu Navy",h:"#1E3A5F"},{n:"Blu",h:"#0047AB"},
+  {n:"Verde",h:"#006F62"},{n:"Lime",h:"#39B54A"},{n:"Oro",h:"#DAA520"},
+  {n:"Argento",h:"#A8A9AD"},{n:"Arancio",h:"#FF8000"},{n:"Viola",h:"#6A0DAD"},
+  {n:"Teal",h:"#008B8B"},{n:"Rosa",h:"#E91E8C"},{n:"Marrone",h:"#6B3A2A"}
+];
+
+// ─── STATE ───
+let usr=null, curPg='dashboard', selGP=0;
+let pred={podio:[null,null,null],gomme:[null,null,null]};
+let prof={nickname:'',numero:7,scuderia:'',pilota:'',helmet:{base1:'#E10600',base2:'#111111',detail:'#DAA520'}};
+let confirmed=false;
+let pkCtx=null; // picker context
+
+// ─── AUTH ───
+document.getElementById('loginBtn').addEventListener('click',()=>{
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(()=>toast('Errore login'));
+});
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+  auth.signOut().then(()=>{document.getElementById('login').classList.remove('hidden');document.getElementById('app').style.display='none';});
+  closeMenu();
+});
+auth.onAuthStateChanged(u=>{
+  if(u){usr=u;document.getElementById('login').classList.add('hidden');document.getElementById('app').style.display='flex';loadProf();initApp();}
+  else{document.getElementById('login').classList.remove('hidden');document.getElementById('app').style.display='none';}
+});
+
+// ─── MENU ───
+document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('menuOv').classList.add('open'));
+document.getElementById('menuX').addEventListener('click',closeMenu);
+document.getElementById('menuOv').addEventListener('click',function(e){if(e.target===this)closeMenu();});
+function closeMenu(){document.getElementById('menuOv').classList.remove('open');}
+
+document.querySelectorAll('.mi[data-pg]').forEach(b=>b.addEventListener('click',()=>{goTo(b.dataset.pg);closeMenu();}));
+document.querySelectorAll('.nb[data-pg]').forEach(b=>b.addEventListener('click',()=>goTo(b.dataset.pg)));
+
+// ─── NAV ───
+function goTo(pg){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.mi').forEach(m=>m.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(n=>n.classList.remove('active'));
+  const t=document.getElementById('pg-'+pg);
+  if(t)t.classList.add('active');
+  document.querySelectorAll('.mi[data-pg="'+pg+'"]').forEach(m=>m.classList.add('active'));
+  document.querySelectorAll('.nb[data-pg="'+pg+'"]').forEach(n=>n.classList.add('active'));
+  curPg=pg;
+  if(pg==='dashboard')renderDash();
+  if(pg==='previsioni')renderPrev();
+  if(pg==='classifica')renderCl();
+  if(pg==='gp_info')renderGpInfo();
+  if(pg==='profilio')renderProf();
+}
+
+// ─── INIT ───
+function initApp(){
+  renderDash();renderGpChips();renderProf();
+  // Admin: inserisci qui la tua email per attivare il pannello
+  const ADMIN="";
+  if(usr.email===ADMIN||ADMIN==="")document.getElementById('adminSec').style.display='block';
+  renderHC();
+}
+
+// ─── FIND GP ───
+function curGP(){
+  const now=new Date();
+  for(let i=0;i<CAL.length;i++){if(now<new Date(CAL[i].race))return{gp:CAL[i],idx:i};}
+  return{gp:CAL[CAL.length-1],idx:CAL.length-1};
+}
+function deadline(gp){const d=new Date(gp.fp1);d.setTime(d.getTime()-2*3600000);return d;}
+
+// ─── DASHBOARD ───
+function renderDash(){
+  const{gp,idx}=curGP();
+  const c=NC[gp.nation]||["#1a1a24","#111"];
+  document.getElementById('gpHeroBg').style.background=`linear-gradient(135deg,${c[0]}22 0%,${c[1]}18 100%)`;
+  document.getElementById('gpHero').style.border=`1px solid ${c[0]}28`;
+  document.getElementById('gpHero').style.borderRadius='12px';
+  document.getElementById('gpFlag').textContent=`GP ${idx+1} / 24`;
+  document.getElementById('gpName').textContent=gp.name;
+  document.getElementById('gpLoc').textContent=gp.location;
+  startCD(gp.race);
+  renderChicca();
+  renderClMini();
+}
+
+function startCD(tgt){
+  if(window._ci)clearInterval(window._ci);
+  function upd(){
+    let diff=new Date(tgt)-new Date();if(diff<0)diff=0;
+    document.getElementById('cd-d').textContent=Math.floor(diff/86400000);
+    document.getElementById('cd-h').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('cd-m').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('cd-s').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  }
+  upd();window._ci=setInterval(upd,1000);
+}
+
+function renderChicca(){
+  const now=new Date(),m=now.getMonth()+1,d=now.getDate();
+  let h=HIST.find(x=>x.m===m&&x.d===d);
+  if(!h)h=HIST.filter(x=>x.m===m).sort((a,b)=>Math.abs(a.d-d)-Math.abs(b.d-d))[0];
+  if(!h)h=HIST[0];
+  document.getElementById('chiccaTxt').innerHTML=h.t.replace(/Nel (\d{4})/,'Nel <span class="yr">$1</span>');
+}
+
+// ─── PREVISIONI ───
+function renderGpChips(){
+  const{idx}=curGP();selGP=idx;
+  document.getElementById('gpChips').innerHTML=CAL.map((g,i)=>`<div class="gp-chip ${i===selGP?'active':''}" onclick="selGPfn(${i})">${g.name}</div>`).join('');
+}
+function selGPfn(i){
+  selGP=i;confirmed=false;pred={podio:[null,null,null],gomme:[null,null,null]};
+  document.querySelectorAll('.gp-chip').forEach((c,j)=>c.classList.toggle('active',j===i));
+  renderPrev();
+}
+function renderPrev(){
+  const gp=CAL[selGP],dl=deadline(gp);
+  const now=new Date(),isUrgent=(dl-now)<1800000&&(dl-now)>0;
+  document.getElementById('dlVal').textContent=dl.toLocaleString('it-IT',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('dlBan').className='dl-ban'+(isUrgent?' urgent':'');
+  renderPodio();renderGomme();
+  document.getElementById('btnConf').disabled=confirmed;
+  document.getElementById('btnConf').textContent=confirmed?'✓ PREVISIONI CONFERMATE':'CONFERMA PREVISIONI';
+}
+
+function renderPodio(){
+  const lbls=['🥇 1°','🥈 2°','🥉 3°'],cls=['p1','p2','p3'];
+  document.getElementById('podioGrid').innerHTML=[0,1,2].map(i=>{
+    const s=pred.podio[i];
+    return`<div class="podio-slot ${s?'sel':''}" onclick="${confirmed?'':'openPk(\'podio\','+i+')'}" style="${confirmed?'cursor:default;':''}">
+      <div class="pp ${cls[i]}">${lbls[i]}</div>
+      <div class="pv">${s?s.name:'Seleziona'}</div>
+      ${s?`<div class="pt" style="color:${T[s.team].c};">${T[s.team].n}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderGomme(){
+  let used=pred.gomme.filter(g=>g).reduce((s,g)=>s+g.slots,0);
+  const rem=3-used;
+  document.getElementById('slotsLabel').textContent=`${rem} slot disponibili`;
+  document.getElementById('gommeSlots').innerHTML=[0,1,2].map(i=>{
+    const g=pred.gomme[i];
+    if(g)return`<div class="g-slot filled" style="border-color:${g.color};background:${g.color}12;">
+      <div class="sl" style="color:${g.color};">${g.catLabel}</div>
+      <div class="sv">${g.sitLabel}</div>
+      ${confirmed?'': `<span class="sx" onclick="rmGomma(${i})" style="color:${g.color};">✕</span>`}
+    </div>`;
+    // slot vuoto disponibile?
+    // Conta quanti slot vuoti ci sono prima di questo
+    const filledBefore=pred.gomme.slice(0,i).filter(x=>x).length;
+    const emptyBefore=i-filledBefore;
+    if(rem>0 && emptyBefore<=0) return`<div class="g-slot" onclick="${confirmed?'':'openCatPk('+i+')'}" style="${confirmed?'cursor:default;':''}"><div class="sn">${i+1}</div></div>`;
+    return`<div class="g-slot blocked"><div class="sn">—</div></div>`;
+  }).join('');
+}
+
+function rmGomma(i){
+  pred.gomme[i]=null;
+  const f=pred.gomme.filter(g=>g!==null);
+  pred.gomme=[...f,...Array(3-f.length).fill(null)];
+  renderGomme();
+}
+
+// ─── CATEGORY PICKER ───
+function openCatPk(slotIdx){
+  if(confirmed)return;
+  let used=pred.gomme.filter(g=>g).reduce((s,g)=>s+g.slots,0);
+  const rem=3-used;
+  pkCtx={type:'cat',slotIdx};
+  document.getElementById('pkTitle').textContent='Scegli Gomma';
+  document.getElementById('pkList').innerHTML=CATS.map(cat=>{
+    const ok=cat.slots<=rem;
+    return`<div class="pk-item" style="${ok?'':'opacity:.28;pointer-events:none;'}" onclick="selCat('${cat.id}')">
+      <span class="cat-dot" style="background:${cat.color};"></span>
+      <div class="cat-info"><div class="cat-name" style="color:${cat.color};">${cat.label}</div><div class="cat-sub">${cat.pts} Boer${cat.pts>1?'i':''} · ${cat.slots} slot${cat.slots>1?' (doppio)':''}</div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('pkOv').classList.add('open');
+}
+
+function selCat(catId){
+  const cat=CATS.find(c=>c.id===catId);
+  pkCtx.cat=cat;
+  document.getElementById('pkTitle').textContent=cat.label+' — Situazione';
+  document.getElementById('pkList').innerHTML=cat.sits.map(s=>`<div class="pk-item" onclick="selSit('${s.id}')">${s.label}</div>`).join('');
+}
+
+function selSit(sitId){
+  const cat=pkCtx.cat,sit=cat.sits.find(s=>s.id===sitId);
+  pkCtx.sit=sit;
+  if(sit.tgt==='yesno'){
+    document.getElementById('pkTitle').textContent=sit.label;
+    document.getElementById('pkList').innerHTML=['Sì','No'].map(v=>`<div class="pk-item" onclick="finalPred('${v.toLowerCase()}')">${v}</div>`).join('');
+    return;
+  }
+  if(sit.tgt==='range'){
+    document.getElementById('pkTitle').textContent=sit.label;
+    document.getElementById('pkList').innerHTML=['1–14','15–18','19–22'].map(v=>`<div class="pk-item" onclick="finalPred('${v}')">${v}</div>`).join('');
+    return;
+  }
+  // driver / driver_or_team
+  document.getElementById('pkTitle').textContent=sit.label;
+  let html=D.map(d=>`<div class="pk-item" onclick="finalPred('driver_${d.num}')">
+    <span class="pn" style="color:${T[d.team].c};">${d.num}</span>
+    <span class="td" style="background:${T[d.team].c};"></span>
+    <div><div class="nm">${d.name}</div><div class="tm">${T[d.team].n}</div></div>
+  </div>`).join('');
+  if(sit.tgt==='driver_or_team'){
+    html+='<div style="height:1px;background:var(--bdr);margin:3px 0;"></div>';
+    html+=TK.map(tk=>`<div class="pk-item" onclick="finalPred('team_${tk}')">
+      <span class="td" style="background:${T[tk].c};width:11px;height:11px;"></span>
+      <div><div class="nm">${T[tk].n}</div><div class="tm">Scuderia</div></div>
+    </div>`).join('');
+  }
+  document.getElementById('pkList').innerHTML=html;
+}
+
+function finalPred(val){
+  const cat=pkCtx.cat,sit=pkCtx.sit;
+  let disp=val;
+  if(val.startsWith('driver_')){const n=parseInt(val.split('_')[1]);const d=D.find(x=>x.num===n);disp=d?d.name:val;}
+  if(val.startsWith('team_')){const tk=val.split('_')[1];disp=T[tk]?T[tk].n:val;}
+  pred.gomme[pkCtx.slotIdx]={catId:cat.id,catLabel:cat.label,color:cat.color,slots:cat.slots,pts:cat.pts,sitId:sit.id,sitLabel:sit.label,value:val,disp};
+  closePk();renderGomme();
+}
+
+// ─── PODIO PICKER ───
+function openPk(type,idx){
+  if(confirmed)return;
+  pkCtx={type,idx};
+  document.getElementById('pkTitle').textContent=['1° Posto','2° Posto','3° Posto'][idx];
+  document.getElementById('pkList').innerHTML=D.map(d=>`<div class="pk-item" onclick="selPodioD(${d.num})">
+    <span class="pn" style="color:${T[d.team].c};">${d.num}</span>
+    <span class="td" style="background:${T[d.team].c};"></span>
+    <div><div class="nm">${d.name}</div><div class="tm">${T[d.team].n}</div></div>
+  </div>`).join('');
+  document.getElementById('pkOv').classList.add('open');
+}
+function selPodioD(num){
+  const d=D.find(x=>x.num===num);
+  if(pkCtx&&pkCtx.type==='podio'){pred.podio[pkCtx.idx]=d;closePk();renderPodio();}
+}
+function closePk(){document.getElementById('pkOv').classList.remove('open');pkCtx=null;}
+
+// ─── CONFERMA ───
+function conferma(){
+  if(confirmed){toast('Già confermate!');return;}
+  if(!pred.podio.every(p=>p)){toast('Completa prima il podio');return;}
+  if(!pred.gomme.some(g=>g)){toast('Scegli almeno una gomma');return;}
+  confirmed=true;
+  renderPrev();
+  // Save to Firestore
+  const gpId=CAL[selGP].id;
+  db.collection('predictions').doc(usr.uid+'_gp'+gpId).set({
+    userId:usr.uid,gpId,
+    podio:pred.podio.map(p=>p?{num:p.num,name:p.name,team:p.team}:null),
+    gomme:pred.gomme.map(g=>g?{catId:g.catId,sitId:g.sitId,value:g.value}:null),
+    confirmedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>toast('✓ Salvato!')).catch(()=>toast('Errore salvataggio'));
+}
+
+// ─── CLASSIFICA (mock) ───
+function renderCl(){
+  const players=[
+    {nick:prof.nickname||'Tu',num:prof.numero,pts:47,gp:3,wins:1,pod:2,cor:8,h:prof.helmet},
+    {nick:'Verstappen Fan',num:1,pts:42,gp:3,wins:1,pod:1,cor:7,h:{base1:'#1E3A5F',base2:'#DAA520',detail:'#F0F0F0'}},
+    {nick:'Scossa',num:44,pts:38,gp:3,wins:0,pod:2,cor:6,h:{base1:'#A8A9AD',base2:'#006F62',detail:'#111'}},
+    {nick:'La Macchina',num:16,pts:35,gp:3,wins:1,pod:1,cor:5,h:{base1:'#8B0000',base2:'#F0F0F0',detail:'#DAA520'}}
+  ].sort((a,b)=>b.pts-a.pts);
+  document.getElementById('clList').innerHTML=players.map((p,i)=>{
+    const rc=i===0?'r1':i===1?'r2':i===2?'r3':'ro';
+    const tc=i===0?'t1':i===1?'t2':i===2?'t3':'';
+    const bv=p.pts>20?'blue':'red';
+    return`<div class="cl-item ${tc}">
+      <div class="rb ${rc}">${i+1}</div>
+      <div class="cl-hel" style="background:linear-gradient(135deg,${p.h.base1},${p.h.base2});border-color:${p.h.detail};">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:38%;background:${p.h.detail};opacity:.55;"></div>
+      </div>
+      <div class="cl-inf"><div class="cl-nm">${p.nick}</div><div class="cl-st">${p.wins} vitt. · ${p.pod} podii · ${p.cor} previs.</div></div>
+      <div class="cl-pts"><span class="cl-pn">${p.pts}</span>${boero(bv,17)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderClMini(){
+  const players=[
+    {nick:prof.nickname||'Tu',num:prof.numero,pts:47,h:prof.helmet},
+    {nick:'Verstappen Fan',num:1,pts:42,h:{base1:'#1E3A5F',base2:'#DAA520',detail:'#F0F0F0'}},
+    {nick:'Scossa',num:44,pts:38,h:{base1:'#A8A9AD',base2:'#006F62',detail:'#111'}}
+  ];
+  document.getElementById('clMini').innerHTML=players.map((p,i)=>{
+    const c=['#DAA520','#A8A9AD','#CD7F32'][i];
+    return`<div style="display:flex;align-items:center;gap:9px;padding:7px 0;${i<2?'border-bottom:1px solid var(--bdr);':''}">
+      <span style="font-family:'Bebas Neue';font-size:15px;color:${c};min-width:16px;">${i+1}</span>
+      <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,${p.h.base1},${p.h.base2});border:2px solid ${p.h.detail};flex-shrink:0;"></div>
+      <span style="font-size:12.5px;font-weight:600;flex:1;">${p.nick}</span>
+      <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:2px;">${p.pts}${boero('red',13)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── GP INFO ───
+function renderGpInfo(){
+  const{gp,idx}=curGP();
+  const next=idx+1<CAL.length?CAL[idx+1]:null;
+  const dl=deadline(gp);
+  document.getElementById('gpInfoB').innerHTML=`
+    <div style="margin-bottom:10px;"><div style="font-family:'Bebas Neue';font-size:21px;color:#fff;letter-spacing:1px;">${gp.name}</div><div style="font-size:11.5px;color:var(--g);margin-top:1px;">${gp.location}</div></div>
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--g);font-size:11.5px;">Gara</span><span style="font-size:11.5px;font-weight:600;">${new Date(gp.race).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</span></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--g);font-size:11.5px;">Deadline</span><span style="font-size:11.5px;color:var(--gold);font-weight:600;">${dl.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</span></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--g);font-size:11.5px;">Sprint</span><span style="font-size:11.5px;font-weight:600;color:${gp.sprint?'var(--inter)':'var(--g)'};">${gp.sprint?'✓ Sì':'No'}</span></div>
+    </div>`;
+  document.getElementById('curB').innerHTML=(CUR[gp.nation]||[]).map(c=>`<div class="cur-item">${c}</div>`).join('');
+  if(next){
+    document.getElementById('nextGpB').innerHTML=`<div style="display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;"><div style="font-size:13.5px;font-weight:700;color:#fff;">${next.name}</div><div style="font-size:10.5px;color:var(--g);">${next.location}</div><div style="font-size:10.5px;color:var(--gl);margin-top:2px;">${new Date(next.race).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</div></div>
+      <div style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;font-weight:700;">GP ${next.id+1}/24 →</div>
+    </div>`;
+  }
+}
+
+// ─── PROFILIO ───
+function loadProf(){
+  if(!usr)return;
+  db.collection('users').doc(usr.uid).get().then(doc=>{
+    if(doc.exists){Object.assign(prof,doc.data());renderProf();}
+  });
+}
+function renderProf(){
+  document.getElementById('profNm').textContent=prof.nickname||'Il Tuo Nome';
+  document.getElementById('profNum').textContent=prof.numero||7;
+  document.getElementById('profEmail').textContent=usr?usr.email:'—';
+  document.getElementById('profHelm').style.background=`linear-gradient(135deg,${prof.helmet.base1},${prof.helmet.base2})`;
+  document.getElementById('profHelm').style.borderColor=prof.helmet.detail;
+  const ni=document.getElementById('inNick'),nu=document.getElementById('inNum');
+  if(ni)ni.value=prof.nickname||'';
+  if(nu)nu.value=prof.numero||7;
+  // Popola select
+  const sc=document.getElementById('inSc');
+  if(sc&&sc.children.length<=1){TK.forEach(tk=>{const o=document.createElement('option');o.value=tk;o.textContent=T[tk].n;sc.appendChild(o);});sc.value=prof.scuderia||'';}
+  const pl=document.getElementById('inPil');
+  if(pl&&pl.children.length<=1){D.forEach(d=>{const o=document.createElement('option');o.value=d.num;o.textContent=`${d.num} ${d.name}`;pl.appendChild(o);});pl.value=prof.pilota||'';}
+  renderHC();
+}
+function updProf(){
+  prof.nickname=document.getElementById('inNick').value;
+  prof.numero=parseInt(document.getElementById('inNum').value)||7;
+  document.getElementById('profNm').textContent=prof.nickname||'Il Tuo Nome';
+  document.getElementById('profNum').textContent=prof.numero;
+}
+function saveProf(){
+  prof.nickname=document.getElementById('inNick').value;
+  prof.numero=parseInt(document.getElementById('inNum').value)||7;
+  prof.scuderia=document.getElementById('inSc').value;
+  prof.pilota=document.getElementById('inPil').value;
+  if(!usr)return;
+  db.collection('users').doc(usr.uid).set(prof,{merge:true}).then(()=>toast('✓ Profilio salvato!')).catch(()=>toast('Errore'));
+}
+
+// ─── HELMET COLORS ───
+function renderHC(){
+  document.querySelectorAll('.hc-row').forEach(row=>{
+    const tgt=row.dataset.tgt;
+    row.innerHTML=HCOLORS.map(c=>{
+      const sel=prof.helmet[tgt]===c.h;
+      return`<div class="hc-swatch" onclick="setHC('${tgt}','${c.h}')" style="background:${c.h};border:${sel?'2.5px solid var(--red)':'2px solid var(--bdr)'};box-shadow:${sel?'0 0 5px rgba(225,6,0,.5)':'none'};" title="${c.n}"></div>`;
+    }).join('');
+  });
+}
+function setHC(tgt,hex){
+  prof.helmet[tgt]=hex;
+  document.getElementById('profHelm').style.background=`linear-gradient(135deg,${prof.helmet.base1},${prof.helmet.base2})`;
+  document.getElementById('profHelm').style.borderColor=prof.helmet.detail;
+  renderHC();
+}
+
+// ─── BOERO SVG ───
+function boero(v,s){
+  const pc=v==='red'?'#E8002D':v==='blue'?'#0047AB':'#DAA520';
+  return`<svg width="${s}" height="${s+3}" viewBox="0 0 28 34" style="display:inline-block;vertical-align:middle;"><ellipse cx="14" cy="31" rx="8" ry="2" fill="#050505"/><rect x="6" y="18" width="16" height="7" rx="2.5" fill="#3B1F0B"/><ellipse cx="14" cy="18" rx="8" ry="7" fill="#5C3317"/><ellipse cx="11.5" cy="15.5" rx="3.5" ry="2.8" fill="#7A4A2A"/><rect x="8.5" y="16.5" width="11" height="4" fill="${pc}"/><rect x="9.2" y="8" width="9.6" height="9.5" rx="1" fill="${pc}"/><ellipse cx="14" cy="8" rx="4.8" ry="2" fill="${pc}"/><ellipse cx="14" cy="20.5" rx="5.5" ry="1.2" fill="${pc}" opacity=".7"/><text x="14" y="16.2" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="7.5">B</text></svg>`;
+}
+
+// ─── TOAST ───
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2100);}
+</script>
+</body>
+</html>
