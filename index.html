@@ -812,16 +812,32 @@ function checkOnbBtn(){
 function confOnboard(){
   const p=document.getElementById('onbPiloti').value;
   const t=document.getElementById('onbTeam').value;
-  if(!p||!t)return;
+  if(!p||!t){toast('Seleziona sia pilota che team');return;}
   prof.campionato={pilota:p,team:t,confirmed:true};
   // Save
-  db.collection('users').doc(usr.uid).set({campionato:prof.campionato},{merge:true}).then(()=>{
-    toast('✓ Previsione campionato salvata!');
+  const btn=document.getElementById('onbBtn');
+  btn.disabled=true;
+  btn.textContent='SALVANDO...';
+  db.collection('users').doc(usr.uid).set({
+    nickname:prof.nickname||'',
+    numero:prof.numero||7,
+    numColor:prof.numColor||'#FFFFFF',
+    scuderia:prof.scuderia||'',
+    pilota:prof.pilota||'',
+    avatar:prof.avatar||{col1:'#E10600',col2:'#111111'},
+    campionato:prof.campionato
+  }).then(()=>{
+    console.log('Campionato salvato, inizializzo app...');
     document.getElementById('onboard').classList.remove('show');
-    initApp();
+    setTimeout(()=>{
+      initApp();
+      toast('✓ Benvenuto in Boeri F1!');
+    },100);
   }).catch(e=>{
     console.error('Onboard save error:',e);
-    toast('Errore salvataggio: '+e.message);
+    toast('Errore: '+e.message);
+    btn.disabled=false;
+    btn.textContent='CONFERMA PREVISIONE';
   });
 }
 
