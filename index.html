@@ -814,7 +814,16 @@ function confCamp(){
   const btn=document.getElementById('campBtn');
   btn.disabled=true;
   btn.textContent='SALVANDO...';
-  db.collection('users').doc(usr.uid).set({campionato:prof.campionato},{merge:true}).then(()=>{
+  // Save complete user profile
+  db.collection('users').doc(usr.uid).set({
+    nickname:prof.nickname||'',
+    numero:prof.numero||7,
+    numColor:prof.numColor||'#FFFFFF',
+    scuderia:prof.scuderia||'',
+    pilota:prof.pilota||'',
+    avatar:prof.avatar||{col1:'#E10600',col2:'#111111'},
+    campionato:prof.campionato
+  }).then(()=>{
     toast('✓ Previsione campionato salvata!');
     closeCampPop();
     renderProfCamp();
@@ -826,6 +835,7 @@ function confCamp(){
   });
 }
 function closeCampPop(){document.getElementById('campOv').classList.remove('open');}
+document.getElementById('campOv').addEventListener('click',function(e){if(e.target===this&&prof.campionato.confirmed)closeCampPop();});
 
 // ═══════════════════════════════════════════
 // LOAD PROFILO
