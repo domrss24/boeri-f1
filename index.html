@@ -74,25 +74,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--w);font-f
 .login-btn:hover{transform:scale(1.03);}
 .login-btn .gi{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#4285f4,#34a853,#fbbc05,#ea4335);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
 
-/* ONBOARDING OVERLAY */
-#onboard{position:absolute;top:0;left:0;right:0;bottom:0;background:#000;z-index:499;display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;overflow-y:auto;}
-#onboard.show{display:flex;}
-.onb-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;text-align:center;margin-bottom:4px;}
-.onb-sub{font-size:10.5px;color:var(--g);text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;}
-.onb-card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);width:100%;max-width:420px;overflow:hidden;margin-bottom:12px;}
-.onb-card-hdr{background:var(--surf2);padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);font-weight:700;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:6px;}
-.onb-card-b{padding:14px;}
-.onb-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);}
-.onb-row:last-child{border-bottom:none;}
-.onb-row .lbl{font-size:12px;color:var(--gl);font-weight:500;}
-.onb-row .val{font-size:12px;color:#fff;font-weight:600;}
-.onb-sel{background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;outline:none;width:100%;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8a9e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;}
-.onb-sel option{background:#1a1a24;}
-.onb-btn{display:block;width:100%;max-width:420px;margin:16px auto 0;background:var(--red);color:#fff;border:none;padding:13px;border-radius:9px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;transition:background .18s;}
-.onb-btn:hover{background:#c50500;}
-.onb-btn:disabled{background:var(--surf3);color:var(--g);cursor:not-allowed;}
-.onb-warn{font-size:9.5px;color:var(--g);text-align:center;max-width:420px;margin:10px auto 0;line-height:1.5;}
-.onb-warn strong{color:var(--gold);}
 
 /* CARDS */
 .card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);margin:0 14px 10px;overflow:hidden;}
@@ -317,25 +298,7 @@ select.inp option{background:#1a1a24;}
   <button class="login-btn" id="loginBtn"><span class="gi">G</span> Accedi con Google</button>
 </div>
 
-<!-- ONBOARDING: Previsione Campionato -->
-<div id="onboard">
-  <div class="onb-title">🏆 PREVISIONE CAMPIONATO</div>
-  <div class="onb-sub">Questa previsione vale per tutta la stagione</div>
-  <div class="onb-card">
-    <div class="onb-card-hdr">🥇 Campione Mondiale Piloti — 50 Boeri Dorati</div>
-    <div class="onb-card-b">
-      <select class="onb-sel" id="onbPiloti"><option value="">Seleziona pilota...</option></select>
-    </div>
-  </div>
-  <div class="onb-card">
-    <div class="onb-card-hdr">🏎️ Campione Mondiale Costruttori — 50 Boeri Dorati</div>
-    <div class="onb-card-b">
-      <select class="onb-sel" id="onbTeam"><option value="">Seleziona scuderia...</option></select>
-    </div>
-  </div>
-  <div class="onb-warn">⚠️ <strong>Questa previsione non può essere modificata</strong> una volta confermata. Vali bene la tua scelta!</div>
-  <button class="onb-btn" id="onbBtn" onclick="confOnboard()" disabled>CONFERMA PREVISIONE</button>
-</div>
+
 
 <!-- APP -->
 <div id="app" style="display:none;">
@@ -577,6 +540,33 @@ select.inp option{background:#1a1a24;}
   </div>
 </div>
 
+<!-- Popup Previsione Campionato -->
+<div class="pop-ov" id="campOv">
+  <div class="pop-card" style="position:relative;max-width:400px;">
+    <button class="pop-x" onclick="closeCampPop()" style="display:none;" id="campX">✕</button>
+    <div style="padding:20px 18px;border-bottom:1px solid var(--bdr);text-align:center;">
+      <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--gold);margin-bottom:4px;">🏆 PREVISIONE CAMPIONATO</div>
+      <div style="font-size:9.5px;color:var(--g);text-transform:uppercase;letter-spacing:1px;">Questa previsione vale per tutta la stagione</div>
+    </div>
+    <div style="padding:16px 18px;">
+      <div style="margin-bottom:14px;">
+        <label class="inp-lbl">🥇 Campione Mondiale Piloti — 50 Boeri Dorati</label>
+        <select class="inp" id="campPiloti" onchange="checkCampBtn()">
+          <option value="">Seleziona pilota...</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="inp-lbl">🏎️ Campione Mondiale Costruttori — 50 Boeri Dorati</label>
+        <select class="inp" id="campTeam" onchange="checkCampBtn()">
+          <option value="">Seleziona scuderia...</option>
+        </select>
+      </div>
+      <div style="font-size:9.5px;color:var(--g);line-height:1.5;margin-bottom:14px;">⚠️ <strong style="color:var(--gold);">Questa previsione non può essere modificata</strong> una volta confermata. Valuta bene la tua scelta!</div>
+      <button class="btn-conf" id="campBtn" onclick="confCamp()" disabled style="margin:0;width:100%;">CONFERMA PREVISIONE</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -737,12 +727,12 @@ document.getElementById('loginBtn').addEventListener('click',()=>{
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>toast('Errore login: '+e.message));
 });
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-  auth.signOut().then(()=>{document.getElementById('login').classList.remove('hidden');document.getElementById('app').style.display='none';document.getElementById('onboard').classList.remove('show');});
+  auth.signOut().then(()=>{document.getElementById('login').classList.remove('hidden');document.getElementById('app').style.display='none';});
   closeMenu();
 });
 auth.onAuthStateChanged(u=>{
   if(u){usr=u;document.getElementById('login').classList.add('hidden');loadProf();}
-  else{document.getElementById('login').classList.remove('hidden');document.getElementById('app').style.display='none';document.getElementById('onboard').classList.remove('show');}
+  else{document.getElementById('login').classList.remove('hidden');document.getElementById('app').style.display='none';}
 });
 
 // ═══════════════════════════════════════════
@@ -790,56 +780,52 @@ function initApp(){
 }
 
 // ═══════════════════════════════════════════
-// ONBOARDING — Previsione Campionato
+// PREVISIONE CAMPIONATO POPUP
 // ═══════════════════════════════════════════
-function showOnboard(){
-  const ob=document.getElementById('onboard');
-  // Popola select piloti
-  const sp=document.getElementById('onbPiloti');
+function showCampPop(){
+  // Popola select
+  const sp=document.getElementById('campPiloti');
   sp.innerHTML='<option value="">Seleziona pilota...</option>'+D.map(d=>`<option value="${d.num}">${d.num} ${d.name} (${T[d.team].n})</option>`).join('');
-  // Popola select team
-  const st=document.getElementById('onbTeam');
+  const st=document.getElementById('campTeam');
   st.innerHTML='<option value="">Seleziona scuderia...</option>'+TK.map(tk=>`<option value="${tk}">${T[tk].n}</option>`).join('');
-  sp.onchange=()=>checkOnbBtn();
-  st.onchange=()=>checkOnbBtn();
-  ob.classList.add('show');
+  document.getElementById('campOv').classList.add('open');
+  // Se già confermato, mostra X per chiudere
+  if(prof.campionato.confirmed){
+    document.getElementById('campX').style.display='block';
+    document.getElementById('campBtn').disabled=true;
+    document.getElementById('campBtn').textContent='✓ GIÀ CONFERMATO';
+    sp.value=prof.campionato.pilota||'';
+    st.value=prof.campionato.team||'';
+    sp.disabled=true;
+    st.disabled=true;
+  }
 }
-function checkOnbBtn(){
-  const p=document.getElementById('onbPiloti').value;
-  const t=document.getElementById('onbTeam').value;
-  document.getElementById('onbBtn').disabled=!(p&&t);
+function checkCampBtn(){
+  const p=document.getElementById('campPiloti').value;
+  const t=document.getElementById('campTeam').value;
+  document.getElementById('campBtn').disabled=!(p&&t);
 }
-function confOnboard(){
-  const p=document.getElementById('onbPiloti').value;
-  const t=document.getElementById('onbTeam').value;
+function confCamp(){
+  if(prof.campionato.confirmed){toast('Già confermato!');return;}
+  const p=document.getElementById('campPiloti').value;
+  const t=document.getElementById('campTeam').value;
   if(!p||!t){toast('Seleziona sia pilota che team');return;}
   prof.campionato={pilota:p,team:t,confirmed:true};
-  // Save
-  const btn=document.getElementById('onbBtn');
+  const btn=document.getElementById('campBtn');
   btn.disabled=true;
   btn.textContent='SALVANDO...';
-  db.collection('users').doc(usr.uid).set({
-    nickname:prof.nickname||'',
-    numero:prof.numero||7,
-    numColor:prof.numColor||'#FFFFFF',
-    scuderia:prof.scuderia||'',
-    pilota:prof.pilota||'',
-    avatar:prof.avatar||{col1:'#E10600',col2:'#111111'},
-    campionato:prof.campionato
-  }).then(()=>{
-    console.log('Campionato salvato, inizializzo app...');
-    document.getElementById('onboard').classList.remove('show');
-    setTimeout(()=>{
-      initApp();
-      toast('✓ Benvenuto in Boeri F1!');
-    },100);
+  db.collection('users').doc(usr.uid).set({campionato:prof.campionato},{merge:true}).then(()=>{
+    toast('✓ Previsione campionato salvata!');
+    closeCampPop();
+    renderProfCamp();
   }).catch(e=>{
-    console.error('Onboard save error:',e);
+    console.error('Camp save error:',e);
     toast('Errore: '+e.message);
     btn.disabled=false;
     btn.textContent='CONFERMA PREVISIONE';
   });
 }
+function closeCampPop(){document.getElementById('campOv').classList.remove('open');}
 
 // ═══════════════════════════════════════════
 // LOAD PROFILO
@@ -857,15 +843,16 @@ function loadProf(){
       if(d.avatar)prof.avatar=d.avatar;
       if(d.campionato)prof.campionato=d.campionato;
     }
-    // Se campionato non confermato, mostra onboarding
+    // Sempre mostra app
+    initApp();
+    // Se campionato non confermato, mostra popup dopo 1 secondo
     if(!prof.campionato.confirmed){
-      showOnboard();
-    } else {
-      initApp();
+      setTimeout(()=>showCampPop(),1000);
     }
   }).catch(()=>{
-    // Nuovo utente
-    showOnboard();
+    // Nuovo utente, mostra app e popup
+    initApp();
+    setTimeout(()=>showCampPop(),1000);
   });
 }
 
