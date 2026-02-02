@@ -543,7 +543,7 @@ select.inp option{background:#1a1a24;}
 <!-- Popup Previsione Campionato -->
 <div class="pop-ov" id="campOv">
   <div class="pop-card" style="position:relative;max-width:400px;">
-    <button class="pop-x" onclick="closeCampPop()" style="display:none;" id="campX">✕</button>
+    <button class="pop-x" onclick="closeCampPop()" id="campX">✕</button>
     <div style="padding:20px 18px;border-bottom:1px solid var(--bdr);text-align:center;">
       <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--gold);margin-bottom:4px;">🏆 PREVISIONE CAMPIONATO</div>
       <div style="font-size:9.5px;color:var(--g);text-transform:uppercase;letter-spacing:1px;">Questa previsione vale per tutta la stagione</div>
@@ -789,9 +789,8 @@ function showCampPop(){
   const st=document.getElementById('campTeam');
   st.innerHTML='<option value="">Seleziona scuderia...</option>'+TK.map(tk=>`<option value="${tk}">${T[tk].n}</option>`).join('');
   document.getElementById('campOv').classList.add('open');
-  // Se già confermato, mostra X per chiudere
+  // Se già confermato, mostra valori e disabilita
   if(prof.campionato.confirmed){
-    document.getElementById('campX').style.display='block';
     document.getElementById('campBtn').disabled=true;
     document.getElementById('campBtn').textContent='✓ GIÀ CONFERMATO';
     sp.value=prof.campionato.pilota||'';
