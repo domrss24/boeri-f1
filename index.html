@@ -818,8 +818,11 @@ function confOnboard(){
   db.collection('users').doc(usr.uid).set({campionato:prof.campionato},{merge:true}).then(()=>{
     toast('✓ Previsione campionato salvata!');
     document.getElementById('onboard').classList.remove('show');
-    renderProf();
-  }).catch(()=>toast('Errore salvataggio'));
+    initApp();
+  }).catch(e=>{
+    console.error('Onboard save error:',e);
+    toast('Errore salvataggio: '+e.message);
+  });
 }
 
 // ═══════════════════════════════════════════
